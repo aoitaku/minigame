@@ -1,0 +1,34 @@
+GIT
+  remote: git://github.com/aoitaku/tmx.git
+  revision: 90fd8cb96714bd526386b60ea5c4769e61c865c7
+  branch: develop
+  specs:
+    tmx (0.1.5)
+      multi_json (~> 1.0)
+      oga (~> 2.2)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ansi (1.5.0)
+    ast (2.3.0)
+    chipmunk (6.1.3.4)
+    dxruby (1.4.4)
+    multi_json (1.12.1)
+    oga (2.2)
+      ast
+      ruby-ll (~> 2.1)
+    ruby-ll (2.1.2)
+      ansi
+      ast
+
+PLATFORMS
+  x86-mingw32
+
+DEPENDENCIES
+  chipmunk
+  dxruby
+  tmx!
+
+BUNDLED WITH
+   1.12.4

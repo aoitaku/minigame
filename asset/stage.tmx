@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="16" height="15" tilewidth="16" tileheight="16" nextobjectid="23">
+ <tileset firstgid="1" name="tileset" tilewidth="16" tileheight="16">
+  <image source="tileset.png" width="256" height="128"/>
+ </tileset>
+ <layer name="tilemap" width="16" height="15">
+  <data encoding="base64" compression="zlib">
+   eJxjZGBgYBwEmFQwqp+++pnQMLXtRzefVP2U2k+p/oHCAOU4AH0=
+  </data>
+ </layer>
+ <objectgroup color="#ffffff" name="collision">
+  <object id="4" type="collision" x="0" y="32" width="32" height="176"/>
+  <object id="5" type="collision" x="0" y="0" width="256" height="32"/>
+  <object id="6" type="collision" x="224" y="32" width="32" height="176"/>
+  <object id="7" type="collision" x="0" y="208" width="256" height="32"/>
+  <object id="15" type="collision" x="32" y="160" width="64" height="8"/>
+  <object id="17" type="collision" x="160" y="128" width="64" height="8"/>
+ </objectgroup>
+ <objectgroup name="object">
+  <object id="19" name="player" type="player" gid="17" x="64" y="160" width="16" height="16"/>
+  <object id="20" name="enemy" type="enemy" gid="18" x="176" y="128" width="16" height="16"/>
+  <object id="21" name="enemy" type="enemy" gid="18" x="144" y="208" width="16" height="16"/>
+ </objectgroup>
+</map>
