@@ -23,6 +23,7 @@ class Character < Sprite
     init_sprite
     init_physics
     self.move_from = vec2(self.x, self.y)
+    yield self if block_given?
   end
 
   def init_sprite
@@ -40,8 +41,10 @@ class Character < Sprite
       Physics::INFINITY
     )
     @model.init_shape_from_box(*self.collision)
-    @model.collision_type = 2
+    @model.collision_type = :character
     @model.layers = 0b00000001
+    @model.elasticity = Physics::ELASTICLESS
+    @model.friction = Physics::FRICTIONLESS
   end
 
   def update_position

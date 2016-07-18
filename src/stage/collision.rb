@@ -17,9 +17,13 @@ class Collision
     @shape.e = Physics::ELASTICFUL
     @shape.u = Physics::FRICTIONLESS
     @shape.group = 1
-    @shape.collision_type = 1
+    @shape.collision_type = :floor
     @shape.layers = 0b11111111
     @type = type
+    case @type
+    when :foothold
+      @shape.collision_type = :conveyor
+    end
   end
 
   def self.create_from_struct(struct)

@@ -25,6 +25,14 @@ module Physics
     CP::Shape::Circle.new(body, r, vec2(x, y))
   end
 
+  def self.moment_for_box(mass, w, h)
+    CP::moment_for_box(mass, w, h)
+  end
+
+  def self.moment_for_circle(mass, r)
+    CP::moment_for_circle(mass, 0, r, CP::Vec2.new(0, 0))
+  end
+
   def self.verts(h, v)
     PROTOTYPE_VERTS.map {|(x, y)| vec2(x * h, y * v) }
   end

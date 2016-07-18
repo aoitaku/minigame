@@ -21,9 +21,7 @@ class Tileset
   end
 
   def self.create_from_structs(structs)
-    Dir.chdir(Asset::DIR) do
-      self.new(structs.flat_map {|struct| Image.load_tiles(*struct.to_a)})
-    end
+   self.new(structs.flat_map {|struct| Asset.chdir { Image.load_tiles(*struct.to_a) } })
   end
 
 end

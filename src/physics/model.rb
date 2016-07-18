@@ -2,7 +2,7 @@ require_relative '../core_ext/delegable'
 
 module Physics
 
-  class MetaData < Struct.new(:move_from)
+  class MetaData < Struct.new(:move_from, :on)
   end
 
   class Model
@@ -44,7 +44,9 @@ module Physics
 
     delegate_to :meta_data,
       :move_from,
-      :move_from=
+      :move_from=,
+      :on,
+      :on=
 
     delegate_to :shape,
       :group,
