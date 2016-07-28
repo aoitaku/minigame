@@ -1,33 +1,37 @@
+require_relative '../geometric'
+
 class Collision
 
-  class Data < Struct.new(:type, :x, :y, :width, :height)
-
-    def to_a
-      [type, x, y, width, height]
-    end
-
+  class Data < Struct.new(:type, :id, :x, :y, :width, :height, :properties)
   end
 
-  attr_accessor :type
+  include Geometric
+
+  attr_accessor :type, :x, :y
   attr_reader :body, :shape
 
-  def initialize(type, x, y, width, height)
-    @body  = Physics.static_body(x + width / 2, y + height / 2)
-    @shape = Physics.box_shape(@body, 0, 0, width, height)
+  def initialize(type, id, x, y, geometry, properties)
+    @id = id
+    @geometry = geometry
+    @x = x + geometry.mid_x
+    @y = y + geometry.mid_y
+    @shape = geometry.to_shape(Physics::Space.static_body, self.x, self.y)
     @shape.e = Physics::ELASTICFUL
     @shape.u = Physics::FRICTIONLESS
     @shape.group = 1
-    @shape.collision_type = :floor
+    @shape.collision_type = @type
     @shape.layers = 0b11111111
-    @type = type
-    case @type
-    when :foothold
-      @shape.collision_type = :conveyor
-    end
   end
 
   def self.create_from_struct(struct)
-    self.new(*struct.to_a)
+    self.new(
+      struct.type,
+      struct.id,
+      struct.x,
+      struct.y,
+      Geometric::Rectangle.new(struct.width, struct.height),
+      struct.properties
+    )
   end
 
 end

@@ -4,8 +4,8 @@ module Physics
 
   class Space
 
-    GRANULARITY_FOR_UPDATE = 4
-    RESOLUTION_FOR_UPDATE = 1.0 / (60 * [GRANULARITY_FOR_UPDATE, 1].max)
+    GRANULARITY = 4
+    RESOLUTION = 1.0 / (60 * [GRANULARITY, 1].max)
 
     extend Forwardable
 
@@ -14,7 +14,11 @@ module Physics
 
     def initialize(gravity_volume)
       @space = CP::Space.new
-      self.gravity_volume = gravity_volume
+      @space.gravity = vec2(0, gravity_volume)
+    end
+
+    def self.static_body
+      @static_body ||= CP::Body.new_static
     end
 
     def add_matter(matter)
@@ -32,7 +36,7 @@ module Physics
     end
 
     def gravity_volume=(gravity_volume)
-      @space.gravity = vec2(0, gravity_volume)
+      @space.gravity.y = gravity_volume
     end
 
     def update
@@ -40,12 +44,12 @@ module Physics
     end
 
     def granularity_for_update
-      GRANULARITY_FOR_UPDATE
+      GRANULARITY
     end
     private :granularity_for_update
 
     def resolution_for_update
-      RESOLUTION_FOR_UPDATE
+      RESOLUTION
     end
     private :resolution_for_update
 

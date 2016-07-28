@@ -47,7 +47,31 @@ class Tmx::Transform
   end
 
   def object_to_array(object)
-    [object.type.to_sym, object.x, object.y, object.width, object.height]
+    [
+      object.type.to_sym,
+      object.id,
+      object.x,
+      object.y,
+      object.width,
+      object.height,
+      object.properties.map(&method(:normalize_property)).to_h
+    ]
+  end
+
+  def normalize_property(args)
+    property, values = args
+    [property.to_sym, values.split(?,).map(&method(:deserialize))]
+  end
+
+  def deserialize(value)
+    case value
+    when /\A([1-9]\d*|0)\z/
+      value.to_i
+    when /\A([1-9]\d*|0)\.(\d+)\z/
+      value.to_f
+    else
+      value.to_sym
+    end
   end
 
 end

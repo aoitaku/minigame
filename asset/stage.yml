@@ -1,0 +1,15 @@
+---
+bgm: stage_bgm.ogg
+bgs: stage_bgs.ogg
+---
+id: 52
+trigger: find
+condition:
+command: |-
+  transport
+---
+id: 53
+trigger: hit
+condition:
+command: |-
+  enemy args[:event]

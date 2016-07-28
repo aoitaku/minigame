@@ -7,18 +7,13 @@ module Physics
 
   INFINITY = CP::INFINITY
 
-  PROTOTYPE_VERTS = [[-1, -1], [-1, 1], [1, 1], [1, -1]]
-
-  def self.static_body(x, y)
-    CP::Body.new_static.tap{|body| body.p = vec2(x, y) }
-  end
-
-  def self.body(x, y, mass, moment)
-    CP::Body.new(mass, moment).tap{|body| body.p = vec2(x, y) }
+  def self.body(mass, moment)
+    CP::Body.new(mass, moment)
   end
 
   def self.box_shape(body, x, y, w, h)
-    CP::Shape::Poly.new(body, verts(w / 2, h / 2), vec2(x, y))
+    verts = [[-1, -1], [-1, 1], [1, 1], [1, -1]].map {|(x, y)| vec2(x * w/2, y * h/2)}
+    CP::Shape::Poly.new(body, verts, vec2(x, y))
   end
 
   def self.circle_shape(body, x, y, r)
@@ -30,11 +25,7 @@ module Physics
   end
 
   def self.moment_for_circle(mass, r)
-    CP::moment_for_circle(mass, 0, r, CP::Vec2.new(0, 0))
-  end
-
-  def self.verts(h, v)
-    PROTOTYPE_VERTS.map {|(x, y)| vec2(x * h, y * v) }
+    CP::moment_for_circle(mass, 0, r, vec2(0, 0))
   end
 
 end
