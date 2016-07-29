@@ -1,18 +1,23 @@
 require_relative 'core_ext/delegable'
-require_relative 'material'
 require_relative 'matter'
-require_relative 'physics/model'
 
 class Character < Matter
 
+  extend Delegable
+
   attr_accessor :family, :vx, :vy
+
+  delegate_to :shape, :object
+
+  delegate_to :object, :move_from, :move_from=
+
 
   def initialize(x, y, geometry, properties, image)
     super(
       x,
       y,
       geometry,
-      Material.new(Physics::ELASTICLESS, Physics::FRICTIONLESS),
+      Physics::Material.new(Physics::Elasticity::MIN, Physics::Friction::MIN),
       1,
       Physics::INFINITY,
       image
@@ -20,9 +25,9 @@ class Character < Matter
     @vx = 0
     @vy = 0
     self.shape.collision_type = :character
-    self.shape.layers = 0b00000001
-    self.shape.object = Physics::MetaData.new
-    self.shape.object.move_from = vec2(self.x, self.y)
+    self.shape.group = Physics::Group::OBJECT
+    self.shape.object = Physics::Tags.new
+    self.move_from = vec2(self.x, self.y)
     yield self if block_given?
   end
 
@@ -37,9 +42,11 @@ class Character < Matter
 
   def update
     self.body.v.x *= 0.9
-    self.shape.object.move_from.x = self.x
-    self.shape.object.move_from.y = self.y
+    self.move_from.x = self.x
+    self.move_from.y = self.y
     super
+    self.vx = self.body.v.x
+    self.vy = self.body.v.y
   end
 
 end

@@ -16,11 +16,9 @@ class Collision
     @x = x + geometry.mid_x
     @y = y + geometry.mid_y
     @shape = geometry.to_shape(Physics::Space.static_body, self.x, self.y)
-    @shape.e = Physics::ELASTICFUL
-    @shape.u = Physics::FRICTIONLESS
-    @shape.group = 1
+    @shape.e = Physics::Elasticity::MAX
+    @shape.u = Physics::Friction::MIN
     @shape.collision_type = @type
-    @shape.layers = 0b11111111
   end
 
   def self.create_from_struct(struct)
@@ -29,7 +27,7 @@ class Collision
       struct.id,
       struct.x,
       struct.y,
-      Geometric::Rectangle.new(struct.width, struct.height),
+      Physics::Rectangle.new(struct.width, struct.height),
       struct.properties
     )
   end

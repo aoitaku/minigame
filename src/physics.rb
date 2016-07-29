@@ -1,3 +1,6 @@
 require_relative 'physics/core'
 require_relative 'physics/space'
-require_relative 'physics/model'
+require_relative 'physics/material'
+require_relative 'physics/geometry'
+require_relative 'physics/circle'
+require_relative 'physics/rectangle'

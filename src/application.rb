@@ -5,6 +5,7 @@ require_relative 'stage'
 require_relative 'character'
 require_relative 'event'
 require_relative 'assets'
+require_relative 'interpreter'
 
 using QueriableArray
 
@@ -13,7 +14,7 @@ target = RenderTarget.new(256, 240)
 stage.target = target
 
 family, id, *player_source, width, height, properties = stage.objects.find_by(first: :player)
-player = Character.new(*player_source, Geometric::Rectangle.new(width, height), properties, Asset.chdir{ Image.load("player.png") }) do |player|
+player = Character.new(*player_source, Physics::Rectangle.new(width, height), properties, Asset.chdir{ Image.load("player.png") }) do |player|
   player.family = family
   player.target = target
   stage.space.add_matter(player)
@@ -27,67 +28,15 @@ enemies = stage.objects.where(first: :enemy).map do |family, id, *enemy_source|
   end
 end
 
-class Interpreter
-
-  def initialize
-  end
-
-  def run(script, event, object)
-    instance_exec(event: event, object: object, &script)
-  end
-
-  def bgm(*args)
-    p "play / pause / resume / change / stop bgm"
-  end
-
-  def se(*args)
-    p "play se"
-  end
-
-  def bgs(*args)
-    p "play / pause / resume / change / stop bgs"
-  end
-
-  def me(*args)
-    p "play me"
-  end
-
-  def switch(*args)
-    p "control switch"
-  end
-  alias s switch
-
-  def variable(*args)
-    p "control variable"
-  end
-  alias v variable
-
-  def item(*args)
-    p "pop item"
-  end
-
-  def enemy(*args)
-    p "pop enemy"
-  end
-
-  def effect(*args)
-    p "pop effect"
-  end
-
-  def message(*args)
-    p "show / hide message"
-  end
-
-  def transport(*args)
-    p "transport player to another place"
-  end
-
-end
-
 interpreter = Interpreter.new
 
-events = stage.objects.where(first: :event).map do |_, id, *event_source|
-  event = Event.new(*event_source, stage.events.find_by(id: id))
+events = stage.objects.where(first: :event).map do |_, id, x, y, width, height, _|
+  event = Event.new(
+    x,
+    y,
+    Physics::Rectangle.new(width, height),
+    stage.events.find_by(id: id)
+  )
   event.subscribe -> args { interpreter.run *args }
   event
 end

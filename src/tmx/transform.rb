@@ -51,7 +51,7 @@ class Tmx::Transform
       object.type.to_sym,
       object.id,
       object.x,
-      object.y,
+      object.gid > 0 ? object.y - object.height : object.y,
       object.width,
       object.height,
       object.properties.map(&method(:normalize_property)).to_h
