@@ -1,58 +1,77 @@
+require 'fiber'
+
 class Interpreter
 
-  def initialize
-    @variables = {}
-    @switches  = {}
+  module Command
+
+    def game
+      Game.instance
+    end
+    private :game
+
+    def bgm(*args)
+    end
+
+    def se(*args)
+    end
+
+    def bgs(*args)
+    end
+
+    def me(*args)
+    end
+
+    def switch
+      game.switches
+    end
+    alias s switch
+
+    def variable
+      game.variables
+    end
+    alias v variable
+
+    def item(*args)
+      p "pop item"
+    end
+
+    def enemy(*args)
+      p "pop enemy"
+    end
+
+    def effect(*args)
+      p "pop effect"
+    end
+
+    def message(*args)
+      p "show / hide message"
+    end
+
+    def transport(*args)
+      p "transport player to another place"
+    end
+
   end
 
-  def run(script, event, object)
-    instance_exec(event: event, object: object, &script)
+  attr_reader :event_id, :command_id
+
+  def initialize(command, event)
+    @fiber = Fiber.new { command.command.call(event) }
+    @event_id = event_id
+    @command_id = command.id
   end
 
-  def bgm(*args)
-    p "play / pause / resume / change / stop bgm"
+  def update
+    return unless @fiber
+    cancel if @fiber.resume
   end
 
-  def se(*args)
-    p "play se"
+  def running?
+    @fiber && @fiber.alive?
   end
 
-  def bgs(*args)
-    p "play / pause / resume / change / stop bgs"
-  end
-
-  def me(*args)
-    p "play me"
-  end
-
-  def switch
-    @switches
-  end
-  alias s switch
-
-  def variable
-    @variables
-  end
-  alias v variable
-
-  def item(*args)
-    p "pop item"
-  end
-
-  def enemy(*args)
-    p "pop enemy"
-  end
-
-  def effect(*args)
-    p "pop effect"
-  end
-
-  def message(*args)
-    p "show / hide message"
-  end
-
-  def transport(*args)
-    p "transport player to another place"
+  def cancel
+    @fiber = nil
   end
 
 end

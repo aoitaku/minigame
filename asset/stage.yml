@@ -3,13 +3,19 @@ bgm: stage_bgm.ogg
 bgs: stage_bgs.ogg
 ---
 id: 52
-trigger: find
-condition:
-command: |-
-  transport
+- trigger: find
+  condition:
+  command: |-
+    transport
+- trigger: auto
+  condition:
+  command:
 ---
 id: 53
-trigger: hit
-condition:
-command: |-
-  enemy args[:event]
+- trigger: hit
+  condition:
+  command: |-
+    enemy args[:event]
+- trigger: auto
+  condition:
+  command:

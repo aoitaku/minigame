@@ -1,8 +1,11 @@
 require 'tmx'
 require 'yaml'
 require_relative 'tmx/transform'
+require_relative 'interpreter'
 
 module Asset
+
+  using QueriableArray
 
   @dir = APP_DIR + 'asset'
 
@@ -15,21 +18,20 @@ module Asset
   end
 
   def self.load_stage(stage_file)
-    meta, *events = YAML.load_stream(File.read(stage_file), stage_file)
-    tmx_file = Pathname.new(File.dirname(stage_file)) + (File.basename(stage_file, '.yml') + '.tmx')
-    tmx = Tmx::Transform.new(Tmx.load(tmx_file)).apply
-    tmx.meta = meta
-    tmx.events = events.map {|event|
-      event.map {|k, v| [k.to_sym, v]}.to_h
-    }.map {|event|
-      Event::Meta[
-        event[:id],
-        event[:trigger],
-        event[:condition],
-        event[:command]
-      ]
-    }
-    tmx
+    events = Event::Evaluator.load(File.read(stage_file))
+    stage_name = File.basename(stage_file, '.rb')
+    tmx_file = Pathname.new(File.dirname(stage_file)) + (stage_name + '.tmx')
+    Tmx::Transform.new(Tmx.load(tmx_file)).apply.tap do |stage|
+      stage.events = stage.objects.where(first: :event).map do |_, id, x, y, width, height, _|
+        (events.find_by(id: id) || Event::Data[id]).tap do |event|
+          event.stage_id = stage_name.to_sym
+          event.x = x
+          event.y = y
+          event.width = width
+          event.height = height
+        end
+      end
+    end
   end
 
   def self.chdir

@@ -2,8 +2,12 @@ require_relative 'physics'
 require_relative 'stage/tileset'
 require_relative 'stage/tilemap'
 require_relative 'stage/collision'
+require_relative 'event'
+require_relative 'interpreter'
 
 class Stage
+
+  using QueriableArray
 
   class Data < Struct.new(:tilesets, :tilemaps, :collisions, :objects, :events, :meta)
   end
@@ -31,18 +35,40 @@ class Stage
       struct.tilemaps.map {|tilemap| Tilemap.new(tilemap, tileset)},
       struct.collisions.map {|collision| Collision.create_from_struct(collision)},
       struct.objects,
-      struct.events,
+      struct.events.map {|event| Event.create_from_struct(event)},
       struct.meta
     )
   end
 
   def update
     @space.update
+    Sprite.update(@events)
+    @active_events = nil
   end
 
   def draw
     @tilemaps.each {|tilemap| tilemap.draw_to(target) }
+    Sprite.draw(@events)
+  end
+
+  def active_events
+    @active_events ||= @events.select(&:current_command)
+  end
+
+  def touchable_events
+    active_events.where(trigger: :on_touch)
+  end
+
+  def inspectable_events
+    active_events.where(trigger: :on_check)
+  end
+
+  def auto_events
+    active_events.where(trigger: :on_ready)
+  end
+
+  def parallel_events
+    active_events.where(trigger: :every_update)
   end
 
 end
-

@@ -59,8 +59,8 @@ class Tmx::Transform
   end
 
   def normalize_property(args)
-    property, values = args
-    [property.to_sym, values.split(?,).map(&method(:deserialize))]
+    property, value = args
+    [property.to_sym, deserialize(value)]
   end
 
   def deserialize(value)
