@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="16" height="15" tilewidth="16" tileheight="16" nextobjectid="55">
+ <tileset firstgid="1" name="tileset" tilewidth="16" tileheight="16" tilecount="128" columns="8">
+  <image source="tileset01.png" trans="9a9a9a" width="128" height="256"/>
+ </tileset>
+ <layer name="tilemap" width="16" height="15">
+  <data encoding="base64" compression="zlib">
+   eJzjYWBg4KEAywGxCJlYAYh5GcgH3KP66abfCQ1T235s5pOin1L7ydWvB8QsZGIDBsryHggDAGMYBoU=
+  </data>
+ </layer>
+ <objectgroup color="#ffffff" name="collision">
+  <object id="4" type="collision" x="0" y="32" width="16" height="176"/>
+  <object id="5" type="collision" x="0" y="0" width="256" height="32"/>
+  <object id="6" type="collision" x="240" y="32" width="16" height="176"/>
+  <object id="7" type="collision" x="0" y="208" width="256" height="32"/>
+  <object id="15" type="foothold" x="32" y="160" width="64" height="8"/>
+  <object id="17" type="foothold" x="160" y="128" width="64" height="8"/>
+ </objectgroup>
+ <objectgroup name="object">
+  <object id="51" name="player" type="player" gid="98" x="48" y="160" width="16" height="16"/>
+  <object id="52" name="switch" type="event" gid="100" x="192" y="128" width="16" height="16"/>
+  <object id="53" name="exit" type="event" gid="99" x="160" y="208" width="16" height="16"/>
+ </objectgroup>
+</map>
