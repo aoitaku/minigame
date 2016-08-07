@@ -42,6 +42,9 @@ class Stage
 
   def update
     @space.update
+  end
+
+  def update_event
     Sprite.update(@events)
     @active_events = nil
   end
@@ -52,7 +55,7 @@ class Stage
   end
 
   def active_events
-    @active_events ||= @events.select(&:current_command)
+    @active_events ||= @events.select(&:current_page)
   end
 
   def touchable_events

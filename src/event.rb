@@ -4,10 +4,16 @@ require_relative 'element'
 
 class Event < Element
 
-  class Data < Struct.new(:id, :commands, :stage_id, :x, :y, :width, :height)
+  class Data < Struct.new(:id, :pages, :stage_id, :x, :y, :width, :height)
   end
 
-  class Command < Struct.new(:id, :trigger, :condition, :command)
+  class Page < Struct.new(:id, :image, :trigger, :condition, :command)
+  end
+
+  class ImageData < Struct.new(:image, :name, :motion)
+    def to_a
+      [image, name, motion]
+    end
   end
 
   class Evaluator
@@ -25,81 +31,95 @@ class Event < Element
 
     def event(id)
       if block_given?
-        @result << Data[id, Command::Evaluator.new {|event| event.instance_exec(&proc) }.result ]
+        @result << Data[id, Page::Evaluator.new {|event| event.instance_exec(&proc) }.result ]
       else
         @result << Data[id]
       end
     end
   end
 
-  class Command::Evaluator
+  class Page::Evaluator
 
     attr_reader :result
 
     def initialize
       @result = []
+      @image = nil
       yield(self)
+    end
+
+    def image(name, motion)
+      @image = ImageData[:image, name, motion]
+      self
     end
 
     def on_check(in_case=true)
       raise ArgumentError unless block_given?
-      @result << Command[@result.size, :on_check, in_case, -> event { event.instance_exec(&proc) }]
+      @result << Page[@result.size, @image, :on_check, in_case, -> event { event.instance_exec(&proc) }]
+      @image = nil
     end
 
     def on_touch(in_case=true)
       raise ArgumentError unless block_given?
-      @result << Command[@result.size, :on_touch, in_case, -> event { event.instance_exec(&proc) }]
+      @result << Page[@result.size, @image, :on_touch, in_case, -> event { event.instance_exec(&proc) }]
+      @image = nil
     end
 
     def on_ready(in_case=true)
       raise ArgumentError unless block_given?
-      @result << Command[@result.size, :on_ready, in_case, -> event { event.instance_exec(&proc) }]
+      @result << Page[@result.size, @image, :on_ready, in_case, -> event { event.instance_exec(&proc) }]
+      @image = nil
     end
 
     def every_update(in_case=true)
       raise ArgumentError unless block_given?
-      @result << Command[@result.size, :every_update, in_case, -> event { event.instance_exec(&proc) }]
+      @result << Page[@result.size, @image, :every_update, in_case, -> event { event.instance_exec(&proc) }]
+      @image = nil
+    end
+
+    def do_nothing(in_case=true)
+      @result << Page[@result.size, @image, :every_update, in_case]
+      @image = nil
     end
 
     def in_case
       raise ArgumentError unless block_given?
       -> event { event.instance_exec(&proc) }
     end
+
   end
 
   include Interpreter::Command
 
   include Subscribable
 
-  attr_reader :id, :stage_id, :commands
+  attr_reader :id, :stage_id, :pages, :current_page
 
-  def initialize(id, stage_id, x, y, geometry, commands=nil, image=nil)
+  def initialize(id, stage_id, x, y, geometry, pages=nil)
     super(x, y, geometry)
     @id = id
     @stage_id = stage_id
-    @commands = commands || []
+    @pages = pages.reverse || []
+    @current_page = nil
     init_subscription
   end
 
-  def current_command
-    @command ||= commands.find {|command| command.condition == true || command.condition.call(self) }
-  end
-
-  def command
-    current_command
-  end
-
   def trigger
-    current_command && current_command.trigger
+    @current_page && @current_page.trigger
   end
 
-  def exec(*)
-    schedule([command, self])
+  def exec
+    schedule([@current_page, self])
   end
 
   def update
-    @command = nil
+    @current_page = pages.find {|page| page.condition == true || page.condition.call(self) }
+    self.image = @current_page.image
     publish_all
+  end
+
+  def to_sym
+    @event_id ||= :"@#{stage_id}##{id}"
   end
 
   def self.create_from_struct(struct)
@@ -109,7 +129,7 @@ class Event < Element
       struct.x,
       struct.y,
       Physics::Rectangle.new(struct.width, struct.height),
-      struct.commands
+      struct.pages.each {|page| page.image = Asset.load_image(*page.image.to_a) }
     )
   end
 

@@ -47,18 +47,18 @@ class Interpreter
       p "show / hide message"
     end
 
-    def transport(*args)
-      p "transport player to another place"
+    def transport(id, x:, y:)
+      game.transport(id, x, y)
     end
 
   end
 
-  attr_reader :event_id, :command_id
+  attr_reader :event_id, :page_id
 
-  def initialize(command, event)
-    @fiber = Fiber.new { command.command.call(event) }
+  def initialize(page, event)
+    @fiber = Fiber.new { page.command.call(event) } if page.command
     @event_id = event_id
-    @command_id = command.id
+    @page_id = page.id
   end
 
   def update

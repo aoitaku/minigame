@@ -21,7 +21,7 @@ class Game
     def []=(key, value)
       case key
       when Event
-        @event_data[key.id] = value
+        @event_data[key.to_sym] = value
       else
         @global_data[key] = value
       end
@@ -30,7 +30,7 @@ class Game
     def [](key)
       case key
       when Event
-        @event_data[key.id]
+        @event_data[key.to_sym]
       else
         @global_data[key]
       end
@@ -47,7 +47,7 @@ class Game
     def []=(key, value)
       case key
       when Event
-        @event_data[key.id] = value
+        @event_data[key.to_sym] = value
       else
         @global_data[key] = value
       end
@@ -56,7 +56,7 @@ class Game
     def [](key)
       case key
       when Event
-        @event_data[key.id]
+        @event_data[key.to_sym]
       else
         @global_data[key]
       end
@@ -68,28 +68,47 @@ class Game
   attr_accessor :target, :variables, :switches
 
   def initialize
-    @stage = Stage.create_from_struct(Asset.load_stage(CONFIG.last_file))
     @target = RenderTarget.new(256, 240)
-    @stage.target = @target
+    @enemies = []
+    @switches  = Switch.new
+    @variables = Variable.new
+    @current_proc = nil
+    @parallel_procs = []
+
+    setup_stage_from_file(CONFIG.last_file)
 
     _, _, *player_source = @stage.objects.find_by(first: :player)
     join_player(new_player(player_source))
 
-    @enemies = []
+    setup_events
+  end
 
-    @switches  = Switch.new
-    @variables = Variable.new
+  def setup_events
+    @stage.events.each do |event|
+      event.subscribe -> args { run_event(*args) }
+      event.target = @target
+    end
+  end
 
-    @commands = []
-
-    @stage.events.each {|event| event.subscribe -> args { register_command(*args) }}
-
-    @waiting_input = false
+  def transport(id, x, y)
+    destruct!
+    setup_stage_from_file("#{id}.rb")
+    setup_events
+    @player.body.p.x = x * 16 + 8
+    @player.body.p.y = y * 16 - 8
+    @stage.space.add_matter(@player)
   end
 
   def destruct!
-    @enemies.clear
-    @commands.clear
+    @stage.space.remove_matter(@player)
+    @enemies.each {|enemy| @stage.space.remove_matter(enemy) }.clear
+    @stage.destruct!
+    @current_proc = nil
+    @parallel_procs.clear
+  end
+
+  def new_stage_from_file(file)
+    Stage.create_from_struct(Asset.load_stage(file))
   end
 
   def new_character(family, x, y, width, height, properties, image)
@@ -112,6 +131,11 @@ class Game
     new_character(:enemy, *source, "enemy.png")
   end
 
+  def setup_stage_from_file(file)
+    @stage = new_stage_from_file(file)
+    @stage.target = @target
+  end
+
   def join_player(player)
     player.target = @target
     @stage.space.add_matter(player)
@@ -124,45 +148,67 @@ class Game
     @enemies << enemy
   end
 
-  def register_command(command, event)
-    old = @commands.find_by(event_id: event.id)
+  def run_event(command, event)
+    return run_parallel_event(command, event) if command.trigger == :every_update
+    @current_proc = Interpreter.new(command, event)
+  end
+
+  def run_parallel_event(command, event)
+    old = @parallel_procs.find_by(event_id: event.id)
     if old
       return if old.command_id == command.id
-      @commands.delete(old)
+      @parallel_procs.delete(old)
     end
-    @commands << Interpreter.new(command, event)
-  end
-
-  def wait_input
-    @waiting_input = true
-  end
-
-  def resolve_input
-    @waiting_input = false
-  end
-
-  def waiting_input?
-    @waiting_input
+    @parallel_procs << Interpreter.new(command, event)
   end
 
   def update
-    @commands.each(&:update)
-    @commands.keep_if(&:running?)
+    process_event
 
-    return if waiting_input?
+    @stage.update_event
+    @stage.parallel_events.each(&:exec)
+    return if event_running?
 
     @stage.update
-    @stage.auto_events.each(&:exec)
-    @stage.parallel_events.each(&:exec)
+    update_sprites
 
+    exec_event
+  end
+
+  def event_running?
+    current_proc_running? && parallel_procs_running?
+  end
+
+  def parallel_procs_running?
+    @parallel_procs.any?(&:running?)
+  end
+
+  def current_proc_running?
+    @current_proc && @current_proc.running?
+  end
+
+  def process_event
+    @current_proc.update if current_proc_running?
+    @parallel_procs.each(&:update)
+    @parallel_procs.keep_if(&:running?)
+  end
+
+  def update_sprites
     @player.move(Input.x * 28, 0)
     @player.jump if (Input.key_push?(K_SPACE) or Input.key_push?(K_X))
     @player.update
     Sprite.update(@enemies)
+  end
 
-    Sprite.check(@stage.touchable_events, @player, :exec)
-    event = @player.check(@stage.inspectable_events).first
-    event.exec(@player) if event && Input.key_push?(K_UP)
+  def exec_event
+    event = @stage.auto_events.first
+    return event.exec if event
+    if Input.key_push?(K_UP)
+      event = @player.check(@stage.inspectable_events).first
+      return event.exec if event
+    end
+    event = @player.check(@stage.touchable_events).first
+    event.exec if event
   end
 
   def draw
@@ -179,6 +225,7 @@ class Game
   end
 end
 
+Asset.load_image_db("image.yml")
 game = Game.instance
 
 Window.width = game.target.width * 2

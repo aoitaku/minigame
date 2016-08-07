@@ -4,7 +4,7 @@ class Config
 
   def initialize(config={})
     if config[:last_file]
-      config[:last_file] = nil unless File.exist?(config[:last_file])
+      config[:last_file] = nil unless File.exist?(ASSET_DIR + config[:last_file])
     end
     @config = config
   end
