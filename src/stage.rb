@@ -1,8 +1,5 @@
 require_relative 'physics'
-require_relative 'stage/tileset'
-require_relative 'stage/tilemap'
-require_relative 'stage/collision'
-require_relative 'event'
+require_relative 'map'
 require_relative 'interpreter'
 
 class Stage
@@ -30,12 +27,12 @@ class Stage
   end
 
   def self.create_from_struct(struct)
-    tileset = Tileset.create_from_structs(struct.tilesets)
+    tileset = Map::Tileset.create_from_structs(struct.tilesets)
     self.new(
-      struct.tilemaps.map {|tilemap| Tilemap.new(tilemap, tileset)},
-      struct.collisions.map {|collision| Collision.create_from_struct(collision)},
+      struct.tilemaps.map {|tilemap| Map::Tilemap.new(tilemap, tileset)},
+      struct.collisions.map {|collision| Map::Collision.create_from_struct(collision)},
       struct.objects,
-      struct.events.map {|event| Event.create_from_struct(event)},
+      struct.events.map {|event| Map::Event.create_from_struct(event)},
       struct.meta
     )
   end

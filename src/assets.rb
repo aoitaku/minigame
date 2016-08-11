@@ -19,12 +19,12 @@ module Asset
   end
 
   def self.load_stage(stage_file)
-    events = Event::Evaluator.load(Asset.chdir { File.read(stage_file) })
+    events = Map::Event::Evaluator.load(Asset.chdir { File.read(stage_file) })
     stage_name = File.basename(stage_file, '.rb')
     tmx_file = Pathname.new(File.dirname(stage_file)) + (stage_name + '.tmx')
     load_tmx(tmx_file).tap do |stage|
       stage.events = stage.objects.where(first: :event).map do |_, id, x, y, width, height, _|
-        (events.find_by(id: id) || Event::Data[id]).tap do |event|
+        (events.find_by(id: id) || Map::Event::Data[id]).tap do |event|
           event.stage_id = stage_name.to_sym
           event.x = x
           event.y = y

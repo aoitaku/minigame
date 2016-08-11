@@ -1,0 +1,6 @@
+require_relative 'qui/core'
+require_relative 'qui/component'
+require_relative 'qui/container'
+require_relative 'qui/char'
+require_relative 'qui/message'
+require_relative 'qui/document'

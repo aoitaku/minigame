@@ -1,5 +1,8 @@
 require 'pathname'
 require 'dxruby'
+
+Encoding.default_external = 'utf-8'
+
 require_relative 'src/config'
 
 APP_DIR = Pathname.new(__dir__.gsub(File::ALT_SEPARATOR, File::SEPARATOR))

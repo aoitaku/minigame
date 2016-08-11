@@ -1,0 +1,6 @@
+require_relative 'map/tileset'
+require_relative 'map/tilemap'
+require_relative 'map/collision'
+require_relative 'map/event'
+require_relative 'map/event/metadata'
+require_relative 'map/event/eval'

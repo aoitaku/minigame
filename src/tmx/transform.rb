@@ -1,4 +1,5 @@
 require_relative '../core_ext/array'
+require_relative '../map'
 
 class Tmx::Transform
 
@@ -13,7 +14,7 @@ class Tmx::Transform
       collect_tilesets,
       collect_tilemaps,
       collect_objects_by(name: "collision").map{|collision|
-        Collision::Data.new(*collision)
+        Map::Collision::Data.new(*collision)
       },
       collect_objects_by(name: "object")
     ]
@@ -27,7 +28,7 @@ class Tmx::Transform
     tile_size = tileset.tilewidth
     col_size = tileset.imagewidth / tile_size
     row_size = tileset.imageheight / tile_size
-    Tileset::Data[tileset.image, col_size, row_size, tile_size]
+    Map::Tileset::Data[tileset.image, col_size, row_size, tile_size]
   end
 
   def collect_tilemaps

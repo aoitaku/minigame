@@ -43,8 +43,12 @@ class Interpreter
       p "pop effect"
     end
 
-    def message(*args)
-      p "show / hide message"
+    def command_menu(commands)
+      game.command_menu(commands)
+    end
+
+    def message(text)
+      game.message(text)
     end
 
     def transport(id, x:, y:)
@@ -55,10 +59,10 @@ class Interpreter
 
   attr_reader :event_id, :page_id
 
-  def initialize(page, event)
-    @fiber = Fiber.new { page.command.call(event) } if page.command
+  def initialize(event_id, page_id)
+    @fiber = Fiber.new(&proc) if block_given?
     @event_id = event_id
-    @page_id = page.id
+    @page_id = page_id
   end
 
   def update
