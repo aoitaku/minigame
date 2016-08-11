@@ -339,7 +339,7 @@
  "meta": {
   "app": "http://www.aseprite.org/",
   "version": "1.1.5.7",
-  "image": "d:/dev/repo/pumpkin/pumpkin_pudding/animator/sandbox/player.png",
+  "image": "player.png",
   "format": "I8",
   "size": { "w": 72, "h": 336 },
   "scale": "1",

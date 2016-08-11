@@ -1,4 +1,5 @@
 require 'fiber'
+require_relative 'enemy'
 
 class Interpreter
 
@@ -35,8 +36,18 @@ class Interpreter
       p "pop item"
     end
 
-    def enemy(*args)
-      p "pop enemy"
+    def enemy(id, x:, y:)
+      enemy = Enemy::DB.find(id)
+      game.entry_enemy(Character.new(
+        x * 16,
+        y * 16 - 8,
+        enemy[:geometry],
+        enemy[:properties]
+      ) {|character|
+        game.load_animation_to_character(enemy[:image], character)
+        character.family = enemy[:family]
+        enemy[:initializer][character]
+      })
     end
 
     def effect(*args)

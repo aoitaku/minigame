@@ -4,6 +4,7 @@ require_relative 'function'
 require_relative 'shader'
 require_relative 'qui'
 require_relative 'game/data'
+require_relative 'player_controller'
 
 class Game
 
@@ -11,6 +12,7 @@ class Game
 
   include Singleton
 
+  attr_reader :player
   attr_accessor :target, :variables, :switches
 
   def initialize
@@ -20,6 +22,7 @@ class Game
     @screen_color = nil
 
     @enemies = []
+    @bullets = []
     @switches  = Switch.new
     @variables = Variable.new
     @current_proc = nil
@@ -32,8 +35,8 @@ class Game
   end
 
   def setup_player
-    _, _, *player_source = @stage.objects.find_by(first: :player)
-    entry_player(new_character(:player, *player_source, "player.json"))
+    _, _, x, y, width, height, properties = @stage.objects.find_by(first: :player)
+    entry_player(new_character(:player, x, y + 8, width, height, properties, "player.json"))
   end
 
   def setup_ui
@@ -123,6 +126,7 @@ class Game
   def entry_player(player)
     player.target = @target
     @stage.space.add_matter(player)
+    PlayerController.attach(player)
     @player = player
   end
 
@@ -135,7 +139,7 @@ class Game
   def new_character(family, x, y, width, height, properties, image)
     Character.new(
       x,
-      y + 8,
+      y,
       Physics::Rectangle.new(width, height),
       properties
     ) do |character|
@@ -186,11 +190,62 @@ class Game
     exec_event
   end
 
-  def update_sprite
-    @player.move(Input.x * 28, 0)
-    @player.jump if (Input.key_push?(K_SPACE) or Input.key_push?(K_X))
+  def update_player
+    footholds = @player.landing(@stage.space)
+    wall = @player.wall(@stage.space)
+    if Input.key_push?(K_Z) and not PlayerController.attacking?
+      @bullets << PlayerController.attack
+    end
+    if Input.x < 0
+      @player.turn_left
+    elsif Input.x > 0
+      @player.turn_right
+    end
+    if @player.aerial?
+      unless PlayerController.attacking?
+        if @player.body.v.y > 0
+          @player.start_falling
+        else
+          @player.start_waiting
+        end
+      end
+      extend_jump = (Input.key_down?(K_SPACE) || Input.key_down?(K_X)) && @player.body.v.y < 0
+      @player.move(wall ? 0 : Input.x * (PlayerController.attacking? ? 12 : 14), extend_jump ? -8 : 0)
+    else
+      unless PlayerController.attacking?
+        if Input.x == 0
+          @player.start_waiting
+        else
+          @player.start_walking
+        end
+      end
+      start_jump = (Input.key_push?(K_SPACE) || Input.key_push?(K_X))
+      if start_jump
+        @player.jump
+        @player.body.v.y = 0
+      end
+      @player.move(wall ? 0 : Input.x * (PlayerController.attacking? ? 4 : 28), start_jump ? -270 : 0)
+    end
     @player.update
+    PlayerController.update
+  end
+
+  def update_enemy
+    @enemies.each do |enemy|
+      enemy.landing(@stage.space)
+      enemy.wall(@stage.space)
+    end
     Sprite.update(@enemies)
+  end
+
+  def update_sprite
+    update_player
+    update_enemy
+    Sprite.update(@bullets)
+    Sprite.check(@bullets, @enemies, :attack_enemy, :hit_by_bullet)
+    Sprite.check(@enemies, player, :shot, :hit_by_enemy)
+    Sprite.clean(@bullets)
+    Sprite.clean(@enemies)
   end
 
   def update_event
@@ -253,7 +308,9 @@ class Game
   def draw
     @stage.draw
     @player.draw
+    PlayerController.draw
     Sprite.draw(@enemies)
+    Sprite.draw(@bullets)
     ex_params = { scale_x: 2, scale_y: 2 }
     if @screen_color
       @shader.color = @screen_color
@@ -368,6 +425,10 @@ class Game
   end
 
   def load_animation_to_character(filename, character)
+    Game.load_animation_to_character(filename, character)
+  end
+
+  def self.load_animation_to_character(filename, character)
     data = JSON.parse(Asset.chdir { File.read(filename) }, symbolize_names: true)
     first = data[:frames].values.first
     meta = data[:meta]
@@ -387,6 +448,9 @@ class Game
       end
     end
     character.image = character.animation_image.first
+  end
+
+  def chain
   end
 
 end

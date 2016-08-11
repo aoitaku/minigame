@@ -24,6 +24,7 @@ event 55 do
   image(:chest, :close).on_check do
     switch[1] = true
     message "Nothing is in\nthe treasure box..."
+    enemy :pumpkin_head, x: 10, y: 13
   end
 
   image(:chest, :open).do_nothing in_case {
