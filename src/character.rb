@@ -1,8 +1,10 @@
 require_relative 'core_ext/delegable'
 require_relative 'matter'
+require_relative 'anime/animative'
 
 class Character < Matter
 
+  include Animative
   extend Delegable
 
   attr_accessor :family, :vx, :vy
@@ -12,7 +14,7 @@ class Character < Matter
   delegate_to :object, :move_from, :move_from=
 
 
-  def initialize(x, y, geometry, properties, image)
+  def initialize(x, y, geometry, properties, image=nil)
     super(
       x,
       y,
@@ -47,6 +49,7 @@ class Character < Matter
     super
     self.vx = self.body.v.x
     self.vy = self.body.v.y
+    update_animation
   end
 
 end

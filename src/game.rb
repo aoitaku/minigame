@@ -1,4 +1,5 @@
 require 'singleton'
+require 'json'
 require_relative 'function'
 require_relative 'shader'
 require_relative 'qui'
@@ -32,7 +33,7 @@ class Game
 
   def setup_player
     _, _, *player_source = @stage.objects.find_by(first: :player)
-    entry_player(new_character(:player, *player_source, "player.png"))
+    entry_player(new_character(:player, *player_source, "player.json"))
   end
 
   def setup_ui
@@ -136,9 +137,9 @@ class Game
       x,
       y + 8,
       Physics::Rectangle.new(width, height),
-      properties,
-      Asset.chdir { Image.load(image) }
+      properties
     ) do |character|
+      load_animation_to_character(image, character)
       character.family = family
     end
   end
@@ -365,4 +366,27 @@ class Game
   def wait(count=1)
     count.times { Fiber.yield }
   end
+
+  def load_animation_to_character(filename, character)
+    data = JSON.parse(Asset.chdir { File.read(filename) }, symbolize_names: true)
+    first = data[:frames].values.first
+    meta = data[:meta]
+    sprite_sheet = meta[:image]
+    return unless Asset.chdir { File.exist?(sprite_sheet) }
+    w, h = meta[:size][:w] / first[:sourceSize][:w], meta[:size][:h] / first[:sourceSize][:h]
+    character.animation_image = Asset.chdir { Image.load_tiles(sprite_sheet, w, h) }
+    meta[:frameTags].each do |frame|
+      case frame[:direction]
+      when 'forward'
+        character.add_animation(frame[:name].to_sym, 6, [*frame[:from].to_i..frame[:to].to_i])
+      when 'pingpong'
+        character.add_animation(frame[:name].to_sym, 6, [
+          *frame[:from].to_i...frame[:to].to_i,
+          *((frame[:from].to_i + 1)..frame[:to].to_i).to_a.reverse
+        ])
+      end
+    end
+    character.image = character.animation_image.first
+  end
+
 end

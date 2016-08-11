@@ -6,8 +6,8 @@ require_relative 'assets'
 require_relative 'game'
 
 Asset.load_image_db("image.yml")
-Asset.chdir { Font.install("KonatuTohaba.ttf") }
-Font.default = Font.new(10, "小夏 等幅")
+Asset.chdir { Font.install("PixelMplus10-Regular.ttf") }
+Font.default = Font.new(11, "PixelMplus10 Regular")
 
 game = Game.instance
 

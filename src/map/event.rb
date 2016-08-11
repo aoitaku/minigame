@@ -37,12 +37,13 @@ class Map::Event < Element
   end
 
   def self.create_from_struct(struct)
+    geometry = Physics::Rectangle.new(struct.width, struct.height)
     self.new(
       struct.id,
       struct.stage_id,
-      struct.x,
-      struct.y,
-      Physics::Rectangle.new(struct.width, struct.height),
+      struct.x + geometry.mid_x,
+      struct.y + geometry.mid_y,
+      geometry,
       struct.pages.each {|page| page.image = Asset.load_image(*page.image.to_a) }
     )
   end

@@ -17,7 +17,7 @@
   <object id="17" type="foothold" x="160" y="128" width="64" height="8"/>
  </objectgroup>
  <objectgroup name="object">
-  <object id="51" name="player" type="player" gid="98" x="48" y="160" width="16" height="16"/>
+  <object id="51" name="player" type="player" gid="98" x="42" y="160" width="12" height="16"/>
   <object id="52" name="switch" type="event" gid="100" x="192" y="128" width="16" height="16"/>
   <object id="53" name="exit" type="event" gid="99" x="160" y="208" width="16" height="16"/>
  </objectgroup>
